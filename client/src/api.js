@@ -1,33 +1,32 @@
 const API_BASE = '/api';
 
-export const login = async (username, password) => {
-  const res = await fetch(`${API_BASE}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+// Вспомогательная функция для добавления заголовка
+const authFetch = (url, token, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Ошибка входа');
-  }
-  return res.json();
 };
 
-export const fetchOrganizations = async () => {
-  const res = await fetch(`${API_BASE}/organizations`);
+export const fetchOrganizations = async (token) => {
+  const res = await authFetch(`${API_BASE}/organizations`, token);
   if (!res.ok) throw new Error('Ошибка загрузки организаций');
   return res.json();
 };
 
-export const fetchDrivers = async (orgId) => {
-  const res = await fetch(`${API_BASE}/organizations/${orgId}/drivers`);
+export const fetchDrivers = async (orgId, token) => {
+  const res = await authFetch(`${API_BASE}/organizations/${orgId}/drivers`, token);
   if (!res.ok) throw new Error('Ошибка загрузки водителей');
   return res.json();
 };
 
-export const fetchCheckups = async (orgId, from, to) => {
+export const fetchCheckups = async (orgId, from, to, token) => {
   const url = `${API_BASE}/organizations/${orgId}/checkups?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
-  const res = await fetch(url);
+  const res = await authFetch(url, token);
   if (!res.ok) throw new Error('Ошибка загрузки осмотров');
   return res.json();
 };

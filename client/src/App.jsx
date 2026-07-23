@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import { login } from './api';
+import { fetchOrganizations } from './api';
 
 const App = () => {
   const [token, setToken] = useState(null);
 
-  const handleLogin = async (username, password) => {
-    const data = await login(username, password);
-    setToken(data.token);
-    return data;
+  const handleLogin = async (enteredToken) => {
+    // Проверяем токен, запрашивая организации
+    try {
+      await fetchOrganizations(enteredToken);
+      setToken(enteredToken);
+    } catch (err) {
+      throw new Error('Недействительный токен: ' + err.message);
+    }
   };
 
   const handleLogout = () => {

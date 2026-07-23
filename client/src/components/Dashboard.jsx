@@ -14,40 +14,42 @@ const Dashboard = ({ token, onLogout }) => {
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
 
-  // 1. Загрузка организаций при монтировании
   useEffect(() => {
     const loadOrgs = async () => {
       try {
-        const data = await fetchOrganizations();
+        const data = await fetchOrganizations(token);
         setOrganizations(data);
         if (data.length > 0) setSelectedOrg(data[0].id.toString());
       } catch (err) {
-        alert('Не удалось загрузить организации: ' + err.message);
+        if (err.message.includes('401')) {
+          alert('Сессия истекла. Войдите заново.');
+          onLogout();
+        } else {
+          alert('Не удалось загрузить организации: ' + err.message);
+        }
       }
     };
     loadOrgs();
-  }, []);
+  }, [token, onLogout]);
 
-  // 2. Загрузка водителей при смене организации
   useEffect(() => {
     if (!selectedOrg) return;
     const loadDrivers = async () => {
       try {
-        const data = await fetchDrivers(selectedOrg);
+        const data = await fetchDrivers(selectedOrg, token);
         setDrivers(data);
       } catch (err) {
         console.error('Ошибка загрузки водителей:', err);
       }
     };
     loadDrivers();
-  }, [selectedOrg]);
+  }, [selectedOrg, token]);
 
-  // 3. Загрузка осмотров по кнопке
   const loadCheckups = async () => {
     if (!selectedOrg) return;
     setLoading(true);
     try {
-      const data = await fetchCheckups(selectedOrg, fromDate, toDate);
+      const data = await fetchCheckups(selectedOrg, fromDate, toDate, token);
       setCheckups(data);
     } catch (err) {
       alert('Ошибка загрузки осмотров: ' + err.message);
@@ -56,13 +58,11 @@ const Dashboard = ({ token, onLogout }) => {
     }
   };
 
-  // группировка по водителям (последний осмотр)
   const getDriverStatusMap = () => {
     const map = new Map();
     checkups.forEach(c => {
       const key = c.driver?.tab_num;
       if (!key) return;
-      // если уже есть, но текущий новее? API возвращает отсортированными по дате? просто перезаписываем (последний)
       map.set(key, c);
     });
     return map;
@@ -108,7 +108,6 @@ const Dashboard = ({ token, onLogout }) => {
         </div>
       </div>
 
-      {/* Таблица водителей со статусом последнего осмотра */}
       <div className="card">
         <h3 style={{ marginBottom: '16px' }}>Статус водителей</h3>
         {drivers.length === 0 && <p style={{ color: '#94a3b8' }}>Нет водителей в этой организации.</p>}
@@ -153,7 +152,6 @@ const Dashboard = ({ token, onLogout }) => {
         </div>
       </div>
 
-      {/* Модалка */}
       {selectedCheckup && (
         <CheckupModal checkup={selectedCheckup} onClose={() => setSelectedCheckup(null)} />
       )}

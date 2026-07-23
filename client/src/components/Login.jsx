@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 const Login = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -11,7 +10,7 @@ const Login = ({ onLogin }) => {
     setLoading(true);
     setError('');
     try {
-      await onLogin(username, password);
+      await onLogin(token.trim());
     } catch (err) {
       setError(err.message);
     } finally {
@@ -24,32 +23,23 @@ const Login = ({ onLogin }) => {
       <div className="card">
         <h1>Вход в систему</h1>
         <p style={{ color: '#64748b', marginBottom: '24px' }}>
-          ONE Telemedic — контроль медосмотров
+          Введите JWT-токен, полученный от ONE Telemedic
         </p>
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Логин</label>
+          <div style={{ marginBottom: '24px' }}>
+            <label>Токен</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              style={{ width: '100%' }}
-            />
-          </div>
-          <div style={{ marginBottom: '24px' }}>
-            <label>Пароль</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="eyJhbGciOiJIUzI1NiIs..."
               required
               style={{ width: '100%' }}
             />
           </div>
           {error && <div style={{ color: '#dc2626', marginBottom: '16px' }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ width: '100%' }}>
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? 'Проверка...' : 'Войти'}
           </button>
         </form>
       </div>
